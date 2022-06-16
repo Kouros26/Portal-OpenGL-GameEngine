@@ -1,0 +1,871 @@
+#pragma once
+#include "../include/Application.h"
+#include "../../game/include/Bullet/WorldPhysicsComponents.h"
+#include "../../game/include/Bullet/BoxRigidBody.h"
+#include "../../game/include/Player.h"
+#include "../../game/include/imgui_app.h"
+#include <stb_image.h>
+
+using namespace Bullet;
+
+Application::Application(Camera* cam)
+{
+	// settings
+	const unsigned int SCR_WIDTH = 800;
+	const unsigned int SCR_HEIGHT = 600;
+	float lastX = SCR_WIDTH / 2.0f;
+	float lastY = SCR_HEIGHT / 2.0f;
+	bool firstMouse = true;
+
+	// glfw: initialize and configure
+	// ------------------------------
+	glfwInit();
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+
+	// glfw window creation
+	// --------------------
+	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+	if (window == NULL)
+	{
+		std::cout << "Failed to create GLFW window" << std::endl;
+		glfwTerminate();
+	}
+	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+
+	// glad: load all OpenGL function pointers
+	// ---------------------------------------
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "Failed to initialize GLAD" << std::endl;
+	}
+
+	Singleton::resources = new ResourceManager();
+
+	Singleton::window = this->window;
+
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	glfwSetWindowUserPointer(window, this);
+
+	stbi_set_flip_vertically_on_load(true);
+
+	SetCamera(cam);
+	LoadModels();
+
+	this->ui = new UIManager(window);
+}
+
+void Application::Gameloop()
+{
+	glEnable(GL_DEPTH_TEST);
+
+	WorldPhysics& world = WorldPhysics::GetInstance();
+
+	bool existingSavedScene = ReadScene("Scene/scene.json");
+
+	SpotLight* spot = new SpotLight(lm::vec3(0.3f, 0.3f, 0.3f), lm::vec3(0.8f, 0.8f, 0.8f), lm::vec3(1.0f, 1.0f, 1.0f), Singleton::cam->GetPosition(), Singleton::cam->GetFoward(), std::cos(lm::vec3::degreesToRadians(12.5f)), std::cos(lm::vec3::degreesToRadians(15.0f)), 1.0f, 0.09f, 0.032f);
+	//DirectionalLight* dir = new DirectionalLight(lm::vec3(0.3f, 0.3f, 0.3f), lm::vec3(0.8f, 0.8f, 0.8f), lm::vec3(1.0f, 1.0f, 1.0f), lm::vec3(0, -90, 0));
+	getSpotLights().push_back(spot);
+	//getDirLights().push_back(dir);
+
+	if (existingSavedScene)
+	{
+		float time = 0;
+		int side = 1;
+		while (!glfwWindowShouldClose(window))
+		{
+			// per-frame time logic
+			// --------------------
+			float currentFrame = static_cast<float>(glfwGetTime());
+			deltaTime = (currentFrame - lastFrame) * timeScale;
+			lastFrame = currentFrame * timeScale;
+
+			//physics
+			world.UpdatePhysics(deltaTime);
+			world.UpdateObjects();
+
+			// input
+			// -----
+			processInput(window);
+			Singleton::cam->update();
+
+			// render
+			// ------
+			glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			if (EditorModeActive)
+				ui->PreRender();
+
+			UpdateLights(Singleton::cam, Singleton::resources);
+			UpdateScene();
+			// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+			// -------------------------------------------------------------------------------
+			if (EditorModeActive)
+				ui->PostRender();
+
+			glfwSwapBuffers(window);
+			glfwPollEvents();
+		}
+	}
+	else
+	{
+
+		//Model* cubeModel = resources->Create<Model>("Assets/Meshes/cube.obj");
+		//Shader* lightShader = resources->Create<Shader>("WhiteShader", "libGL/shaders/LightVertexShader.glsl", "libGL/shaders/LightFragShader.glsl");
+		//Texture* lightTex = resources->Create<Texture>("WhiteTexture", "Assets/Textures/plain-white-background.jpg", true);
+		//Mesh* lightMesh = resources->Create<Mesh>("LightCube", cubeModel, lightShader, lightTex, cam);
+
+		Shader* lightShader = Singleton::resources->Create<Shader>("LitShader", "libGL/shaders/LightVertexShader.glsl", "libGL/shaders/LightFragShader.glsl");
+		Singleton::shaderList.push_back(lightShader);
+		Model* cubeModel = Singleton::resources->Get<Model>("Assets/Meshes\\cube.obj");
+
+
+		GameObject* light1 = new GameObject("LightCube1", cubeModel, lightShader, lm::vec3(-15.f, 15.f, -15.f), lm::vec3(0, 0, 0), lm::vec3(0.25f, 0.25f, 0.25f));
+		light1->CreatePointLight(lm::vec3(1.0f, 1.0f, 1.0f), lm::vec3(0.8f, 0.8f, 0.8f), lm::vec3(1.0f, 1.0f, 1.0f), 1.0f, 0.09f, 0.032f);
+
+		GameObject* light2 = new GameObject("LightCube2", cubeModel, lightShader, lm::vec3(45.f, 15.f, -15.f), lm::vec3(0, 0, 0), lm::vec3(0.25f, 0.25f, 0.25f));
+		light2->CreatePointLight(lm::vec3(1.0f, 1.0f, 1.0f), lm::vec3(0.8f, 0.8f, 0.8f), lm::vec3(1.0f, 1.0f, 1.0f), 1.0f, 0.09f, 0.032f);
+
+		GameObject* light3 = new GameObject("LightCube3", cubeModel, lightShader, lm::vec3(-15.f, 15.f, 15.f), lm::vec3(0, 0, 0), lm::vec3(0.25f, 0.25f, 0.25f));
+		light3->CreatePointLight(lm::vec3(1.0f, 1.0f, 1.0f), lm::vec3(0.8f, 0.8f, 0.8f), lm::vec3(1.0f, 1.0f, 1.0f), 1.0f, 0.09f, 0.032f);
+
+		GameObject* light4 = new GameObject("LightCube4", cubeModel, lightShader, lm::vec3(45.f, 15.f, 15.f), lm::vec3(0, 0, 0), lm::vec3(0.25f, 0.25f, 0.25f));
+		light4->CreatePointLight(lm::vec3(1.0f, 1.0f, 1.0f), lm::vec3(0.8f, 0.8f, 0.8f), lm::vec3(1.0f, 1.0f, 1.0f), 1.0f, 0.09f, 0.032f);
+
+		getSceneGraph().push_back(light1);
+		getSceneGraph().push_back(light2);
+		getSceneGraph().push_back(light3);
+		getSceneGraph().push_back(light4);
+
+		Model* ourModel1 = Singleton::resources->Get<Model>("Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\Props_Computer.obj");
+		Model* ourModel2 = Singleton::resources->Get<Model>("Assets/Meshes\\Ultimate_Modular_Sci-Fi\\FBX\\Props_Crate.fbx");
+		//Model* ourModel3 = Singleton::resources->Get<Model>("Assets/Meshes\\objects\\backpack\\backpack.obj");
+
+
+		GameObject* structure1 = new GameObject("Computer", ourModel1, lightShader, lm::vec3(0, 0, -4.5 ), lm::vec3(0, 0, 0 ), lm::vec3(1, 1, 1 ));
+		structure1->CreateBoxRigidBody(Vec3(0.5f, 0.5f, 0.5f), Vec3(1.f, 1.f, 1.f), 1);
+
+		GameObject* structure2 = new GameObject("Crate", ourModel2, lightShader, lm::vec3(-10, 0, -4.5), lm::vec3(0, 0, 0), lm::vec3(1, 1, 1));
+		//Graph* structure3 = new Graph(ourModel3, lightShader, lm::vec3(10, 0, -4.5), lm::vec3(0, 0, 0), lm::vec3(1, 1, 1));
+		getSceneGraph().push_back(structure1);
+		getSceneGraph().push_back(structure2);
+		//getSceneGraph().push_back(structure3);
+
+		Map map;
+
+		Model* turretModel = Singleton::resources->Get<Model>("Assets/Meshes\\tank.obj");
+		Turret turret(turretModel);
+		//Player player;
+
+		while (!glfwWindowShouldClose(window))
+		{
+			// per-frame time logic
+			// --------------------
+			float currentFrame = static_cast<float>(glfwGetTime());
+			deltaTime = (currentFrame - lastFrame) * timeScale;
+			lastFrame = currentFrame * timeScale;
+
+			//physics
+			world.UpdatePhysics(deltaTime);
+			world.UpdateObjects();
+
+			//player.Update();
+			// input
+			// -----
+			processInput(window);
+			Singleton::cam->update();
+			turret.Update();
+
+			// render
+			// ------
+			glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			if(EditorModeActive)
+				ui->PreRender();
+
+			UpdateLights(Singleton::cam, Singleton::resources);
+			UpdateScene();
+			// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+			// -------------------------------------------------------------------------------
+			if (EditorModeActive)
+				ui->PostRender();
+
+			glfwSwapBuffers(window);
+			glfwPollEvents();
+		}
+	}
+}
+
+void Application::processInput(GLFWwindow* window)
+{
+	Application* app = (Application*)glfwGetWindowUserPointer(window);
+
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+
+	float deltaTime = this->GetDeltaTime();
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && !EditorModeActive)
+		Singleton::cam->ProcessKeyboard(FORWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && !EditorModeActive)
+		Singleton::cam->ProcessKeyboard(BACKWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && !EditorModeActive)
+		Singleton::cam->ProcessKeyboard(LEFT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && !EditorModeActive)
+		Singleton::cam->ProcessKeyboard(RIGHT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && !EditorModeActive)
+		Singleton::cam->ProcessKeyboard(SPEED, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE && !EditorModeActive)
+		Singleton::cam->ProcessKeyboard(WALK, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+		SaveScene();
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+		EditorMode();
+
+
+	/*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		this->cam->setMovementDirection().X() = -1;
+	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		this->cam->setMovementDirection().X() = 1;
+	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE)
+		this->cam->setMovementDirection().X() = 0;
+
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		this->cam->setMovementDirection().Y() = -1;
+	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		this->cam->setMovementDirection().Y() = 1;
+	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE)
+		this->cam->setMovementDirection().Y() = 0;*/
+}
+
+ResourceManager* Application::GetResourceManager()
+{
+	return Singleton::resources;
+}
+
+GLFWwindow* Application::GetWindow()
+{
+	return this->window;
+}
+
+void Application::SetCamera(Camera* cam)
+{
+	Singleton::cam = cam;
+}
+
+void Application::UpdateLights(Camera* cam, ResourceManager* manager)
+{
+	for (int i = 0; i < dirLights.size(); ++i)
+	{
+			dirLights[i]->UpdateLights(Singleton::resources->Get<Shader>("LitShader"), i);
+			glUniform1i(glGetUniformLocation(Singleton::resources->Get<Shader>("LitShader")->GetShaderProgram(), ("nbDirLight")), dirLights.size());
+	}
+
+	for (int i = 0; i < pointLights.size(); ++i)
+	{
+			pointLights[i]->UpdateLights(Singleton::resources->Get<Shader>("LitShader"), i);
+			glUniform1i(glGetUniformLocation(Singleton::resources->Get<Shader>("LitShader")->GetShaderProgram(), ("nbPointLight")), pointLights.size());
+	}
+
+	for (int i = 0; i < spotLights.size(); ++i)
+	{
+		spotLights[i]->SetPositionDirection(cam);
+
+			spotLights[i]->UpdateLights(Singleton::resources->Get<Shader>("LitShader"), i);
+			glUniform1i(glGetUniformLocation(Singleton::resources->Get<Shader>("LitShader")->GetShaderProgram(), ("nbSpotLight")), spotLights.size());
+	}
+}
+
+void Application::UpdateScene()
+{
+	for (int i = 0; i < Singleton::sceneGraph.size(); ++i)
+	{
+		Singleton::sceneGraph[i]->UpdateMatrices();
+	}
+}
+
+void Application::LoadModels()
+{
+	std::string path = "Assets/Meshes";
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
+	{
+		std::cout << entry.path() << std::endl;
+		std::string pathName = entry.path().string();
+		if (pathName.substr(pathName.size() - 4, 4) == ".fbx" || pathName.substr(pathName.size() - 4, 4) == ".obj")
+			Singleton::resources->Create<Model>(entry.path().string(), Singleton::cam);
+	}
+}
+
+void Application::EditorMode()
+{
+	EditorModeActive = !EditorModeActive;
+	if (EditorModeActive)
+	{
+		timeScale = 0;
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
+	else
+	{
+		timeScale = 1;
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
+}
+
+void Application::TerminateImGui()
+{
+	this->ui->Terminate();
+}
+
+float Application::GetDeltaTime()
+{
+	return deltaTime;
+}
+
+std::vector<DirectionalLight*>& Application::getDirLights()
+{
+	return this->dirLights;
+}
+
+std::vector<PointLight*>& Application::getPointLights()
+{
+	return this->pointLights;
+}
+
+std::vector<SpotLight*>& Application::getSpotLights()
+{
+	return this->spotLights;
+}
+
+std::vector<Graph*>& Application::getSceneGraph()
+{
+	return Singleton::sceneGraph;
+}
+
+std::vector<Shader*>& Application::getShaderList()
+{
+	return Singleton::shaderList;
+}
+
+Camera* Application::getCamera()
+{
+	return Singleton::cam;
+}
+
+void Application::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+	Application* app = (Application*)glfwGetWindowUserPointer(window);
+
+	float xpos = static_cast<float>(xposIn);
+	float ypos = static_cast<float>(yposIn);
+
+	if (app->firstMouse)
+	{
+		app->lastX = xpos;
+		app->lastY = ypos;
+		app->firstMouse = false;
+	}
+
+	float xoffset = xpos - app->lastX;
+	float yoffset = app->lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+	app->lastX = xpos;
+	app->lastY = ypos;
+
+	if(app->EditorModeActive == false)
+		Singleton::cam->ProcessMouseMovement(xoffset, yoffset);
+}
+
+void Application::SaveScene()
+{
+	rapidjson::StringBuffer ss;
+	rapidjson::PrettyWriter<rapidjson::StringBuffer> pw(ss);
+	pw.StartObject();
+	pw.Key("GameObjects");
+	pw.StartArray();
+	for (int i = 0; i < Singleton::sceneGraph.size(); i++)
+	{
+		if(dynamic_cast<GameObject*>(Singleton::sceneGraph[i]) != nullptr)
+			dynamic_cast<GameObject*>(Singleton::sceneGraph[i])->SaveObject(pw);
+	}
+	pw.EndArray();
+	pw.EndObject();
+
+	std::ofstream file("Scene/scene.json");
+	std::string s = ss.GetString();
+	file << s;
+	file.close();
+}
+
+bool Application::ReadScene(char const* filepath)
+{
+	std::fstream file(filepath);
+	if (!file.good())
+		return false;
+	bool fileEmpty = true;
+	std::string s;
+	file >> s;
+	std::vector<Graph*> childs;
+	while (!file.eof())
+	{
+		file >> s;
+
+		if (s == "\"GameObjects\":")
+			fileEmpty = CreateSceneObject(file, childs);
+
+		s.clear();
+	}
+
+	file.close();
+
+	if (!fileEmpty)
+	{
+		Singleton::sceneGraph = childs;
+	}
+
+	return !fileEmpty;
+}
+
+bool Application::CreateSceneObject(std::fstream& file, std::vector<Graph*>& childs)
+{
+	std::vector<Graph*> newChilds;
+	std::string s, num, objectName, nameShader, vertexShader, fragShader, geoShader, model;
+	lm::vec3 pos, rot, scale, direction, halfExtend, rigidBodyScale, PointAmbiantColor, PointDiffuseColor, PointSpecularColor, SpotAmbiantColor, SpotDiffuseColor, SpotSpecularColor;
+	float PointConstant, PointLinear, PointQuadratic, SpotConstant, SpotLinear, SpotQuadratic, cutOff, outerCutOff, mass, radius, height;
+	bool pointLightOn = false, spotLightOn = false, boxOn = false, capsuleOn = false, sphereOn = false;
+
+	while (!file.eof())
+	{
+		file >> s;
+		if (s == "[")
+			continue;
+		else if (s == "[]")
+			return true;
+
+		if (s == "\"ObjectName\":")
+		{
+			file >> objectName;
+			num.clear();
+			for (int i = 1; i < objectName.size() - 2; i++)
+				num += objectName[i];
+			objectName = num;
+		}
+
+		if (s == "\"ShaderName\":")
+		{
+			file >> nameShader;
+			num.clear();
+			for (int i = 1; i < nameShader.size() - 2; i++)
+				num += nameShader[i];
+			nameShader = num;
+		}
+
+		else if (s == "\"VertexShaderPath\":")
+		{
+			file >> vertexShader;
+			num.clear();
+			for (int i = 1; i < vertexShader.size() - 2; i++)
+				num += vertexShader[i];
+			vertexShader = num;
+		}
+
+		else if (s == "\"FragmentShaderPath\":")\
+		{
+			file >> fragShader;
+			num.clear();
+			for (int i = 1; i < fragShader.size() - 2; i++)
+				num += fragShader[i];
+			fragShader = num;
+		}
+
+		else if (s == "\"GeometryShaderPath\":")
+		{
+			file >> geoShader;
+			num.clear();
+			for (int i = 1; i < geoShader.size() - 2; i++)
+				num += geoShader[i];
+			geoShader = num;
+		}
+
+		else if (s == "\"ModelPath\":")
+		{
+			file >> model;
+			num.clear();
+			for (int i = 1; i < model.size() - 2; i++)
+			{
+				if (model[i] == '\\')
+					i++;
+				num += model[i];
+			}
+			model = num;
+		}
+
+		else if (s == "\"Position\":")
+		{
+			file >> s;
+			num.clear();
+			for (int i = 1; i < s.size(); i++)
+				num += s[i];
+			pos.X() = std::stof(num.c_str());
+			file >> s;
+			pos.Y() = std::stof(s.c_str());
+			file >> s;
+			pos.Z() = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Rotation\":")
+		{
+			file >> s;
+			num.clear();
+			for (int i = 1; i < s.size(); i++)
+				num += s[i];
+			rot.X() = std::stof(num.c_str());
+			file >> s;
+			rot.Y() = std::stof(s.c_str());
+			file >> s;
+			rot.Z() = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Scale\":")
+		{
+			file >> s;
+			num.clear();
+			for (int i = 1; i < s.size(); i++)
+				num += s[i];
+			scale.X() = std::stof(num.c_str());
+			file >> s;
+			scale.Y() = std::stof(s.c_str());
+			file >> s;
+			scale.Z() = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Component\":")
+		{
+			pointLightOn = false, spotLightOn = false, boxOn = false, capsuleOn = false, sphereOn = false;
+			while (s != "]," && s != "[],")
+			{
+				file >> s;
+				if (s == "\"Type\":")
+				{
+					file >> s;
+					if (s == "\"PointLight\",")
+						pointLightOn = CreatePointLight(file, PointAmbiantColor, PointDiffuseColor, PointSpecularColor, PointConstant, PointLinear, PointQuadratic);
+
+					else if (s == "\"SpotLight\",")
+						spotLightOn = CreateSpotLight(file, SpotAmbiantColor, SpotDiffuseColor, SpotSpecularColor, SpotConstant, SpotLinear, SpotQuadratic, direction, cutOff, outerCutOff);
+
+					else if (s == "\"BoxRigidBody\",")
+						boxOn = CreateBoxRigidBody(file, mass, halfExtend, rigidBodyScale);
+
+					else if (s == "\"CapsuleRigidBody\",")
+						capsuleOn = CreateCapsuleRigidBody(file, mass, radius, height);
+
+					else if (s == "\"SphereRigidBody\",")
+						sphereOn = CreateSphereRigidBody(file, mass, radius);
+				}
+			}
+		}
+
+		else if (s == "\"Childs\":")
+			CreateSceneObject(file, newChilds);
+
+		else if (s == "}," || s == "}")
+		{
+			Model* newModel;
+			if (Singleton::resources->Get<Model>(model) == nullptr)
+				newModel = Singleton::resources->Create<Model>(model, Singleton::cam);
+			else
+				newModel = Singleton::resources->Get<Model>(model);
+			Shader* newShader;
+			if (Singleton::resources->Get<Shader>(nameShader) == nullptr)
+				newShader = Singleton::resources->Create<Shader>(nameShader, vertexShader.c_str(), fragShader.c_str(), geoShader.c_str());
+			else
+				newShader = Singleton::resources->Get<Shader>(nameShader);
+			GameObject* newObject = new GameObject(objectName, newModel, newShader, pos, rot, scale);
+
+			if (pointLightOn)
+				newObject->CreatePointLight(PointAmbiantColor, PointDiffuseColor, PointSpecularColor, PointConstant, PointLinear, PointQuadratic);
+			else if (spotLightOn)
+				newObject->CreateSpotLight(SpotAmbiantColor, SpotDiffuseColor, SpotSpecularColor, direction, cutOff, outerCutOff, SpotConstant, SpotLinear, SpotQuadratic);
+			else if (boxOn)
+				newObject->CreateBoxRigidBody(halfExtend, rigidBodyScale, mass);
+			else if (capsuleOn)
+				newObject->CreateCapsuleRigidBody(height, radius, mass);
+			else if (sphereOn)
+				newObject->CreateSphereRigidBody(radius, mass);
+
+			for (int i = 0; i < newChilds.size(); i++)
+			{
+				newObject->AddChild(newChilds[i], this->window);
+			}
+			childs.push_back(newObject);
+		}
+
+		else if (s == "]")
+			break;
+	}
+	return false;
+}
+
+bool Application::CreatePointLight(std::fstream& file, lm::vec3& ambiantColor, lm::vec3& diffuseColor, lm::vec3& specularColor, float& constant, float& linear, float& quadratic)
+{
+	std::string s;
+	std::string num;
+	while (s != "}")
+	{
+		file >> s;
+		if (s == "\"AmbiantColor\":")
+		{
+			file >> s;
+			num.clear();
+			for (int i = 1; i < s.size(); i++)
+				num += s[i];
+			ambiantColor.X() = std::stof(num.c_str());
+			file >> s;
+			ambiantColor.Y() = std::stof(s.c_str());
+			file >> s;
+			ambiantColor.Z() = std::stof(s.c_str());
+		}
+
+		else if (s == "\"DiffuseColor\":")
+		{
+			file >> s;
+			num.clear();
+			for (int i = 1; i < s.size(); i++)
+				num += s[i];
+			diffuseColor.X() = std::stof(num.c_str());
+			file >> s;
+			diffuseColor.Y() = std::stof(s.c_str());
+			file >> s;
+			diffuseColor.Z() = std::stof(s.c_str());
+		}
+
+		else if (s == "\"SpecularColor\":")
+		{
+			file >> s;
+			num.clear();
+			for (int i = 1; i < s.size(); i++)
+				num += s[i];
+			specularColor.X() = std::stof(num.c_str());
+			file >> s;
+			specularColor.Y() = std::stof(s.c_str());
+			file >> s;
+			specularColor.Z() = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Constant\":")
+		{
+			file >> s;
+			constant = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Linear\":")
+		{
+			file >> s;
+			linear = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Quadratic\":")
+		{
+			file >> s;
+			quadratic = std::stof(s.c_str());
+		}
+	}
+	return true;
+}
+
+bool Application::CreateSpotLight(std::fstream& file, lm::vec3& ambiantColor, lm::vec3& diffuseColor, lm::vec3& specularColor, float& constant, float& linear, float& quadratic, lm::vec3& direction, float cutOff, float outerCutOff)
+{
+	std::string s;
+	std::string num;
+	while (s != "}")
+	{
+		file >> s;
+		if (s == "\"AmbiantColor\":")
+		{
+			file >> s;
+			num.clear();
+			for (int i = 1; i < s.size(); i++)
+				num += s[i];
+			ambiantColor.X() = std::stof(num.c_str());
+			file >> s;
+			ambiantColor.Y() = std::stof(s.c_str());
+			file >> s;
+			ambiantColor.Z() = std::stof(s.c_str());
+		}
+
+		else if (s == "\"DiffuseColor\":")
+		{
+			file >> s;
+			num.clear();
+			for (int i = 1; i < s.size(); i++)
+				num += s[i];
+			diffuseColor.X() = std::stof(num.c_str());
+			file >> s;
+			diffuseColor.Y() = std::stof(s.c_str());
+			file >> s;
+			diffuseColor.Z() = std::stof(s.c_str());
+		}
+
+		else if (s == "\"SpecularColor\":")
+		{
+			file >> s;
+			num.clear();
+			for (int i = 1; i < s.size(); i++)
+				num += s[i];
+			specularColor.X() = std::stof(num.c_str());
+			file >> s;
+			specularColor.Y() = std::stof(s.c_str());
+			file >> s;
+			specularColor.Z() = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Constant\":")
+		{
+			file >> s;
+			constant = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Linear\":")
+		{
+			file >> s;
+			linear = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Quadratic\":")
+		{
+			file >> s;
+			quadratic = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Direction\":")
+		{
+			file >> s;
+			num.clear();
+			for (int i = 1; i < s.size(); i++)
+				num += s[i];
+			direction.X() = std::stof(num.c_str());
+			file >> s;
+			direction.Y() = std::stof(s.c_str());
+			file >> s;
+			direction.Z() = std::stof(s.c_str());
+		}
+
+		else if (s == "\"CutOff\":")
+		{
+			file >> s;
+			cutOff = std::stof(s.c_str());
+		}
+
+		else if (s == "\"OuterCutOff\":")
+		{
+			file >> s;
+			outerCutOff = std::stof(s.c_str());
+		}
+	}
+	return true;
+}
+
+bool Application::CreateBoxRigidBody(std::fstream& file, float& mass, lm::vec3& halfExtend, lm::vec3& scale)
+{
+	std::string s;
+	std::string num;
+	while (s != "}")
+	{
+		file >> s;
+		if (s == "\"HalfExtents\":")
+		{
+			file >> s;
+			num.clear();
+			for (int i = 1; i < s.size(); i++)
+				num += s[i];
+			halfExtend.X() = std::stof(num.c_str());
+			file >> s;
+			halfExtend.Y() = std::stof(s.c_str());
+			file >> s;
+			halfExtend.Z() = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Scale\":")
+		{
+			file >> s;
+			num.clear();
+			for (int i = 1; i < s.size(); i++)
+				num += s[i];
+			scale.X() = std::stof(num.c_str());
+			file >> s;
+			scale.Y() = std::stof(s.c_str());
+			file >> s;
+			scale.Z() = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Mass\":")
+		{
+			file >> s;
+			mass = std::stof(s.c_str());
+		}
+	}
+	return true;
+}
+
+bool Application::CreateCapsuleRigidBody(std::fstream& file, float& mass, float& radius, float& height)
+{
+	std::string s;
+	while (s != "}")
+	{
+		file >> s;
+		if (s == "\"Mass\":")
+		{
+			file >> s;
+			mass = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Rad\":")
+		{
+			file >> s;
+			radius = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Height\":")
+		{
+			file >> s;
+			height = std::stof(s.c_str());
+		}
+	}
+	return true;
+}
+
+bool Application::CreateSphereRigidBody(std::fstream& file, float& mass, float& radius)
+{
+	std::string s;
+	while (s != "}")
+	{
+		file >> s;
+		if (s == "\"Mass\":")
+		{
+			file >> s;
+			mass = std::stof(s.c_str());
+		}
+
+		else if (s == "\"Rad\":")
+		{
+			file >> s;
+			radius = std::stof(s.c_str());
+		}
+	}
+	return true;
+}
+
+void Application::framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	// make sure the viewport matches the new window dimensions; note that width and
+	// height will be significantly larger than specified on retina displays.
+	glViewport(0, 0, width, height);
+	Application* app = (Application*)glfwGetWindowUserPointer(window);
+	//Camera* cam = new Camera(90, ((float)width / height), 0.1f, 100);
+	app->SetCamera(new Camera(90, ((float)width / height), 0.1f, 100));
+}

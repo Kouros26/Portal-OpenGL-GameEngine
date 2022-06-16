@@ -1,0 +1,189 @@
+#include "..\include\GameObject.h"
+#include "../include/Bullet/BoxRigidBody.h"
+#include "../include/Bullet/CapsuleRigidBody.h"
+#include "../include/Bullet/SphereRigidBody.h"
+#include "../../libGL/include/LowRenderer/PointLight.h"
+#include "../../libGL/include/LowRenderer/SpotLight.h"
+#include "../../libGL/include/Application.h"
+
+GameObject::GameObject(Model* model, Shader* shader, lm::vec3 const& position, lm::vec3 const& rotation, lm::vec3 const& scale)
+{
+	this->model = model;
+	this->shader = shader;
+	this->parent = nullptr;
+	this->localTransform = lm::mat4::createTransformMatrix(position, rotation, scale);
+	this->globalTransform = this->localTransform;
+	this->pos = position;
+	this->rot = rotation;
+	this->scale = scale;
+}
+
+GameObject::GameObject(Model* model, Shader* shader, lm::vec3 const& position, lm::vec3 const& rotation, lm::vec3 const& scale, Graph* parent, GLFWwindow* window)
+{
+	this->model = model;
+	this->shader = shader;
+	this->parent = parent;
+	this->parent->AddChild(this, window);
+	this->localTransform = lm::mat4::createTransformMatrix(position, rotation, scale);
+	this->globalTransform = this->parent->GetGlobalMatrix() * this->localTransform;
+	this->pos = position;
+	this->rot = rotation;
+	this->scale = scale;
+}
+
+void GameObject::OnCollisionEnter(btRigidBody* me, btRigidBody* other, void* otherGameObject)
+{
+	printf("Object %p collided with %p\n", me, other);
+}
+
+void GameObject::OnCollisionExit(btRigidBody* me, btRigidBody* other, void* otherGameObject)
+{
+	printf("Object %p do not collide anymore with with %p\n", me, other);
+}
+
+void GameObject::CreateBoxRigidBody(lm::vec3 const& halfextents, lm::vec3 const& scale, float mass)
+{
+	BoxRigidBody* rb = new BoxRigidBody(vec3(0.5f, 0.5f, 0.5f), vec3(1.f, 1.f, 1.f),
+		this->pos, mass, this);
+	rb->GetMS()->SetGraphicMatrix(&this->GetGlobalMatrix());
+	rb->GetShapeType() = RigidBodyType::BOX;
+	_components.push_back(rb);
+	WorldPhysics::GetInstance().GetGameObjects().push_back(this);
+}
+
+void GameObject::CreateCapsuleRigidBody(float height, float rad, float mass)
+{
+	
+	CapsuleRigidBody* rb = new CapsuleRigidBody(rad, height, this->pos, mass, this);
+	rb->GetMS()->SetGraphicMatrix(&this->GetGlobalMatrix());
+	rb->GetShapeType() = RigidBodyType::CAPSULE;
+	_components.push_back(rb);
+	WorldPhysics::GetInstance().GetGameObjects().push_back(this);
+}
+
+void GameObject::CreateSphereRigidBody(float rad, float mass)
+{
+	SphereRigidBody* rb = new SphereRigidBody(rad, this->pos, mass, this);
+	rb->GetMS()->SetGraphicMatrix(&this->GetGlobalMatrix());
+	rb->GetShapeType() = RigidBodyType::SPHERE;
+	_components.push_back(rb);
+	WorldPhysics::GetInstance().GetGameObjects().push_back(this);
+}
+
+void GameObject::CreatePointLight(lm::vec3 const& ambient, lm::vec3 const& diffuse,
+	lm::vec3 const& specular, float constant, float linear, float quadratic)
+{
+	PointLight* light = new PointLight(ambient, diffuse, specular, &this->pos, constant, linear, quadratic);
+	Application* app = (Application*)glfwGetWindowUserPointer(Singleton::window);
+	app->getPointLights().push_back(light);
+	_components.push_back(light);
+}
+
+void GameObject::CreateSpotLight(lm::vec3 const& ambient, lm::vec3 const& diffuse,
+	lm::vec3 const& specular, lm::vec3& direction, float cutOff, float outerCutOff, float constant, float linear, float quadratic)
+{
+	SpotLight* light = new SpotLight(ambient, diffuse, specular, this->pos, direction,
+		cutOff, outerCutOff, constant, linear, quadratic);
+	Application* app = (Application*)glfwGetWindowUserPointer(Singleton::window);
+	app->getSpotLights().push_back(light);
+	_components.push_back(light);
+}
+
+void GameObject::SaveObject(rapidjson::PrettyWriter<rapidjson::StringBuffer>& buffer)
+{
+	buffer.StartObject();
+
+	buffer.Key("ShaderName");
+	buffer.String(this->shader->name.c_str());
+
+	buffer.Key("VertexShaderPath");
+	buffer.String(this->shader->vertexPath.c_str());
+
+	buffer.Key("FragmentShaderPath");
+	buffer.String(this->shader->fragmentPath.c_str());
+
+	buffer.Key("GeometryShaderPath");
+	buffer.String(this->shader->geometryPath.c_str());
+
+	buffer.Key("ModelPath");
+	buffer.String(this->model->path.c_str());
+
+	buffer.Key("Position");
+	buffer.SetFormatOptions(rapidjson::PrettyFormatOptions::kFormatSingleLineArray);
+	buffer.StartArray();
+	buffer.Double(this->pos.X());
+	buffer.Double(this->pos.Y());
+	buffer.Double(this->pos.Z());
+	buffer.EndArray();
+	buffer.SetFormatOptions(rapidjson::PrettyFormatOptions::kFormatDefault);
+
+	buffer.Key("Rotation");
+	buffer.SetFormatOptions(rapidjson::PrettyFormatOptions::kFormatSingleLineArray);
+	buffer.StartArray();
+	buffer.Double(this->rot.X());
+	buffer.Double(this->rot.Y());
+	buffer.Double(this->rot.Z());
+	buffer.EndArray();
+	buffer.SetFormatOptions(rapidjson::PrettyFormatOptions::kFormatDefault);
+
+	buffer.Key("Scale");
+	buffer.SetFormatOptions(rapidjson::PrettyFormatOptions::kFormatSingleLineArray);
+	buffer.StartArray();
+	buffer.Double(this->scale.X());
+	buffer.Double(this->scale.Y());
+	buffer.Double(this->scale.Z());
+	buffer.EndArray();
+	buffer.SetFormatOptions(rapidjson::PrettyFormatOptions::kFormatDefault);
+
+	buffer.Key("Component");
+	buffer.StartArray();
+	for (int i = 0; i < this->_components.size(); i++)
+	{
+		buffer.StartObject();
+		buffer.Key("Type");
+		std::string typeName = this->_components[i]->GetComponentName();
+		buffer.String(typeName.c_str());
+
+		if (typeName == "PointLight" || typeName == "SpotLight")
+		{
+			buffer.Key("DiffuseColor");
+			buffer.SetFormatOptions(rapidjson::PrettyFormatOptions::kFormatSingleLineArray);
+			buffer.StartArray();
+			buffer.Double(dynamic_cast<Light*>(this->_components[i])->GetDiffuseColor().X());
+			buffer.Double(dynamic_cast<Light*>(this->_components[i])->GetDiffuseColor().Y());
+			buffer.Double(dynamic_cast<Light*>(this->_components[i])->GetDiffuseColor().Z());
+			buffer.Double(dynamic_cast<Light*>(this->_components[i])->GetDiffuseColor().W());
+			buffer.EndArray();
+
+			buffer.Key("AmbiantColor");
+			buffer.SetFormatOptions(rapidjson::PrettyFormatOptions::kFormatSingleLineArray);
+			buffer.StartArray();
+			buffer.Double(dynamic_cast<Light*>(this->_components[i])->GetAmbiantColor().X());
+			buffer.Double(dynamic_cast<Light*>(this->_components[i])->GetAmbiantColor().Y());
+			buffer.Double(dynamic_cast<Light*>(this->_components[i])->GetAmbiantColor().Z());
+			buffer.Double(dynamic_cast<Light*>(this->_components[i])->GetAmbiantColor().W());
+			buffer.EndArray();
+
+			buffer.Key("SpecularColor");
+			buffer.SetFormatOptions(rapidjson::PrettyFormatOptions::kFormatSingleLineArray);
+			buffer.StartArray();
+			buffer.Double(dynamic_cast<Light*>(this->_components[i])->GetSpecularColor().X());
+			buffer.Double(dynamic_cast<Light*>(this->_components[i])->GetSpecularColor().Y());
+			buffer.Double(dynamic_cast<Light*>(this->_components[i])->GetSpecularColor().Z());
+			buffer.Double(dynamic_cast<Light*>(this->_components[i])->GetSpecularColor().W());
+			buffer.EndArray();
+		}
+
+		buffer.EndObject();
+	}	
+	buffer.EndArray();
+
+	buffer.Key("Childs");
+	buffer.StartArray();
+	for (std::list<Graph*>::iterator it = childs.begin(); it != childs.end(); it++)
+	{
+		(*it)->SaveObject(buffer);
+	}
+	buffer.EndArray();
+	buffer.EndObject();
+}

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Companion Cube
+* source:	https://sketchfab.com/3d-models/companion-cube-47502a51b211475b9750b04b4b1dffc4
+* author:	Michael Klement (https://sketchfab.com/mklement)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Companion Cube" (https://sketchfab.com/3d-models/companion-cube-47502a51b211475b9750b04b4b1dffc4) by Michael Klement (https://sketchfab.com/mklement) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)

@@ -1,0 +1,445 @@
+{
+    "GameObjects": [
+        {
+            "ObjectName": "LightCube1",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\cube.obj",
+            "Position": [-15.0, 15.0, -15.0],
+            "Rotation": [0.0, -0.0, 0.0],
+            "Scale": [0.25, 0.25, 0.25],
+            "Component": [
+                {
+                    "Type": "PointLight",
+                    "AmbiantColor": [1.0, 1.0, 1.0],
+                    "DiffuseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929],
+                    "SpecularColor": [1.0, 1.0, 1.0],
+                    "Constant": 1.0,
+                    "Linear": 0.09000000357627869,
+                    "Quadratic": 0.03200000151991844
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "LightCube2",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\cube.obj",
+            "Position": [45.0, 15.0, -15.0],
+            "Rotation": [0.0, -0.0, 0.0],
+            "Scale": [0.25, 0.25, 0.25],
+            "Component": [
+                {
+                    "Type": "PointLight",
+                    "AmbiantColor": [1.0, 1.0, 1.0],
+                    "DiffuseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929],
+                    "SpecularColor": [1.0, 1.0, 1.0],
+                    "Constant": 1.0,
+                    "Linear": 0.09000000357627869,
+                    "Quadratic": 0.03200000151991844
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "LightCube3",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\cube.obj",
+            "Position": [-15.0, 15.0, 15.0],
+            "Rotation": [0.0, -0.0, 0.0],
+            "Scale": [0.25, 0.25, 0.25],
+            "Component": [
+                {
+                    "Type": "PointLight",
+                    "AmbiantColor": [1.0, 1.0, 1.0],
+                    "DiffuseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929],
+                    "SpecularColor": [1.0, 1.0, 1.0],
+                    "Constant": 1.0,
+                    "Linear": 0.09000000357627869,
+                    "Quadratic": 0.03200000151991844
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "LightCube4",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\cube.obj",
+            "Position": [45.0, 15.0, 15.0],
+            "Rotation": [0.0, -0.0, 0.0],
+            "Scale": [0.25, 0.25, 0.25],
+            "Component": [
+                {
+                    "Type": "PointLight",
+                    "AmbiantColor": [1.0, 1.0, 1.0],
+                    "DiffuseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929],
+                    "SpecularColor": [1.0, 1.0, 1.0],
+                    "Constant": 1.0,
+                    "Linear": 0.09000000357627869,
+                    "Quadratic": 0.03200000151991844
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "Floor",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\FloorTile_Double_Hallway.obj",
+            "Position": [0.0, -1.0, 0.0],
+            "Rotation": [0.0, -0.0, 0.0],
+            "Scale": [15.0, 15.0, 15.0],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 0.0,
+                    "HalfExtents": [0.5, 0.5, 0.5],
+                    "Scale": [90.0, 0.5, 30.0]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "LeftWall",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\LongWindow_Wall_SideB.obj",
+            "Position": [-15.0, -1.0, 0.0],
+            "Rotation": [-0.0, -90.0, -0.0],
+            "Scale": [7.5, 7.5, 7.5],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 0.0,
+                    "HalfExtents": [0.5, 0.5, 0.5],
+                    "Scale": [2.0, 50.0, 90.0]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "RightWall",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\LongWindow_Wall_SideB.obj",
+            "Position": [45.0, -1.0, 0.0],
+            "Rotation": [-0.0, 90.0, -0.0],
+            "Scale": [7.5, 7.5, 7.5],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 0.0,
+                    "HalfExtents": [0.5, 0.5, 0.5],
+                    "Scale": [2.0, 50.0, 90.0]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "FrontWall",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\LongWindow_Wall_SideB.obj",
+            "Position": [15.0, -1.0, -15.0],
+            "Rotation": [0.0, -0.0, 0.0],
+            "Scale": [15.0, 7.5, 15.0],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 0.0,
+                    "HalfExtents": [0.5, 0.5, 0.5],
+                    "Scale": [90.0, 50.0, 2.0]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "BackWall",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\LongWindow_Wall_SideB.obj",
+            "Position": [15.0, -1.0, 15.0],
+            "Rotation": [180.0, 0.000005008956122765085, 180.0],
+            "Scale": [15.0, 7.5, 15.0],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 0.0,
+                    "HalfExtents": [0.5, 0.5, 0.5],
+                    "Scale": [90.0, 50.0, 2.0]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "FrontLeftColumn",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\Column_3.obj",
+            "Position": [-15.5, -1.0, -15.5],
+            "Rotation": [0.0, -0.0, 0.0],
+            "Scale": [7.5, 7.5, 7.5],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 0.0,
+                    "HalfExtents": [0.5, 0.5, 0.5],
+                    "Scale": [5.0, 50.0, 5.0]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "FrontRightColumn",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\Column_3.obj",
+            "Position": [45.5, -1.0, -15.5],
+            "Rotation": [0.0, -0.0, 0.0],
+            "Scale": [7.5, 7.5, 7.5],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 0.0,
+                    "HalfExtents": [0.5, 0.5, 0.5],
+                    "Scale": [5.0, 50.0, 5.0]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "BackLeftColumn",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\Column_3.obj",
+            "Position": [-15.5, -1.0, 15.5],
+            "Rotation": [0.0, -0.0, 0.0],
+            "Scale": [7.5, 7.5, 7.5],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 0.0,
+                    "HalfExtents": [0.5, 0.5, 0.5],
+                    "Scale": [5.0, 50.0, 5.0]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "BackRightColumn",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\Column_3.obj",
+            "Position": [45.5, -1.0, 15.5],
+            "Rotation": [0.0, -0.0, 0.0],
+            "Scale": [7.5, 7.5, 7.5],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 0.0,
+                    "HalfExtents": [0.5, 0.5, 0.5],
+                    "Scale": [5.0, 50.0, 5.0]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "LeftRoof",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\RoofTile_Details.obj",
+            "Position": [0.0, 27.5, 0.0],
+            "Rotation": [179.99998474121094, -0.0, 0.0],
+            "Scale": [15.0, 15.0, 12.5],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 0.0,
+                    "HalfExtents": [0.5, 0.5, 0.5],
+                    "Scale": [30.0, 0.5, 25.0]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "RightRoof",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\RoofTile_Details.obj",
+            "Position": [30.0, 27.5, 0.0],
+            "Rotation": [179.99998474121094, -0.0, 0.0],
+            "Scale": [15.0, 15.0, 12.5],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 0.0,
+                    "HalfExtents": [0.5, 0.5, 0.5],
+                    "Scale": [30.0, 0.5, 25.0]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "Platform",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\FloorTile_Empty.obj",
+            "Position": [10.523923873901367, 2.0, 0.0],
+            "Rotation": [0.0, -0.0, 0.0],
+            "Scale": [1.0, 1.0, 1.0],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 0.0,
+                    "HalfExtents": [1.0, 0.10000000149011612, 1.0],
+                    "Scale": [1.0, 0.30000001192092896, 1.0]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "Computer",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\aperture_radio\\source\\radio_wrapped_meshfixes.fbx",
+            "Position": [4.0, 2.0, -4.5],
+            "Rotation": [0.0, -0.0, 0.0],
+            "Scale": [1.0, 1.0, 1.0],
+            "Component": [
+                {
+                    "Type": "Music"
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "Computer",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\OBJ\\Props_Computer.obj",
+            "Position": [-0.000004840309429710032, -0.25000008940696716, -4.4998931884765625],
+            "Rotation": [-0.000002258401536892052, 0.0006271172896958888, -0.000023917644284665585],
+            "Scale": [1.0, 1.0, 1.0],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 1.0,
+                    "HalfExtents": [0.5, 0.5, 0.5],
+                    "Scale": [1.0, 1.0, 1.0]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "Crate",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\FBX\\Props_Crate.fbx",
+            "Position": [-10.0, 2.0, -4.5],
+            "Rotation": [0.0, -0.0, 0.0],
+            "Scale": [1.0, 1.0, 1.0],
+            "Component": [],
+            "Childs": []
+        },
+        {
+            "ObjectName": "Player",
+            "ShaderName": "Null",
+            "ModelPath": "Null",
+            "Position": [10.857749938964844, 0.25001466274261475, -2.354384660720825],
+            "Rotation": [0.0025273470673710108, -0.0008957735262811184, 0.0033086915500462055],
+            "Scale": [1.0, 1.0, 1.0],
+            "Component": [
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 20.0,
+                    "HalfExtents": [0.5, 1.0, 0.5],
+                    "Scale": [0.5, 1.0, 0.5]
+                }
+            ],
+            "Childs": []
+        },
+        {
+            "ObjectName": "Turret",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\tank.obj",
+            "Position": [20.0, 0.0, -10.0],
+            "Rotation": [-170.71461486816406, -49.72211837768555, 172.8900604248047],
+            "Scale": [1.0, 1.0, 1.0],
+            "Component": [],
+            "Childs": []
+        },
+        {
+            "ObjectName": "Companion",
+            "ShaderName": "LitShader",
+            "VertexShaderPath": "libGL/shaders/LightVertexShader.glsl",
+            "FragmentShaderPath": "libGL/shaders/LightFragShader.glsl",
+            "GeometryShaderPath": "",
+            "ModelPath": "Assets/Meshes\\Ultimate_Modular_Sci-Fi\\FBX\\Props_Crate.fbx",
+            "Position": [-0.000005081803919892991, -0.25000014901161194, 6.0001068115234375],
+            "Rotation": [-0.000002991401515828329, 0.000631445727776736, -0.00004506988261709921],
+            "Scale": [1.0, 1.0, 1.0],
+            "Component": [
+                {
+                    "Type": "PointLight",
+                    "AmbiantColor": [1.0, 1.0, 1.0],
+                    "DiffuseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929],
+                    "SpecularColor": [1.0, 1.0, 1.0],
+                    "Constant": 1.0,
+                    "Linear": 0.09000000357627869,
+                    "Quadratic": 0.03200000151991844
+                },
+                {
+                    "Type": "BoxRigidBody",
+                    "Mass": 30.0,
+                    "HalfExtents": [0.5, 0.5, 0.5],
+                    "Scale": [1.0, 1.0, 1.0]
+                }
+            ],
+            "Childs": []
+        }
+    ]
+}
